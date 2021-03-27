@@ -137,6 +137,10 @@
     <Reference Include="System.Xaml">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
     </Reference>
+    <Reference Include="Tesseract, Version=4.1.1.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\packages\Tesseract.4.1.1\lib\net45\Tesseract.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="UIAutomationProvider" />
     <Reference Include="UIAutomationTypes" />
     <Reference Include="WindowsBase" />
@@ -978,6 +982,11 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\Style.css" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="Ocr\eng.traineddata">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
@@ -1001,4 +1010,11 @@
    editbin /largeaddressaware "$(TargetPath)"
 )</PostBuildEvent>
   </PropertyGroup>
+  <Import Project="..\packages\Tesseract.4.1.1\build\Tesseract.targets" Condition="Exists('..\packages\Tesseract.4.1.1\build\Tesseract.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105.The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\Tesseract.4.1.1\build\Tesseract.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Tesseract.4.1.1\build\Tesseract.targets'))" />
+  </Target>
 </Project>

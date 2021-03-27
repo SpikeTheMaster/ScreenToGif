@@ -3,25 +3,33 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Windows.Media.Imaging;
+using System.Windows.Shell;
 using System.Windows.Threading;
 using Microsoft.Win32;
 using ScreenToGif.Capture;
 using ScreenToGif.Controls;
 using ScreenToGif.Model;
+using ScreenToGif.ModelEx;
 using ScreenToGif.Util;
 using ScreenToGif.Util.InputHook;
 using ScreenToGif.ViewModel;
+using ScreenToGif.Webcam.DirectShow;
 using ScreenToGif.Windows.Other;
+using Tesseract;
 using Cursors = System.Windows.Input.Cursors;
 using DpiChangedEventArgs = System.Windows.DpiChangedEventArgs;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
+using MessageBox = System.Windows.MessageBox;
 using Monitor = ScreenToGif.Native.Monitor;
+using Rect = System.Windows.Rect;
 using Timer = System.Windows.Forms.Timer;
 
 namespace ScreenToGif.Windows
@@ -79,7 +87,7 @@ namespace ScreenToGif.Windows
         private int _preStartCount = 1;
 
         /// <summary>
-        /// True when the user stop the recording. 
+        /// True when the user stop the recording.
         /// </summary>
         private bool _stopRequested;
 
@@ -195,7 +203,7 @@ namespace ScreenToGif.Windows
             _viewModel.IsDirectMode = UserSettings.All.UseDesktopDuplication;
 
             await UpdatePositioning(true);
-            
+
             #endregion
 
             UpdateSize();
@@ -363,7 +371,7 @@ namespace ScreenToGif.Windows
                     break;
             }
         }
-        
+
         private void CommandGrid_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             if (Mouse.LeftButton == MouseButtonState.Pressed)
@@ -465,7 +473,7 @@ namespace ScreenToGif.Windows
         }
 
         #endregion
-        
+
         #region Hooks
 
         /// <summary>
@@ -578,7 +586,7 @@ namespace ScreenToGif.Windows
 
                 #endregion
 
-                if (target != null && target.ProcessName == "ScreenToGif") 
+                if (target != null && target.ProcessName == "ScreenToGif")
                     return;
 
                 //Clear up the selected window frame.
@@ -831,6 +839,9 @@ namespace ScreenToGif.Windows
                 new CommandBinding(_viewModel.RecordCommand, async (sender, args) => await Record(),
                     (sender, args) => args.CanExecute = (Stage == Stage.Stopped || Stage == Stage.Paused) && UserSettings.All.CaptureFrequency != CaptureFrequency.Manual),
 
+                new CommandBinding(_viewModel.OcrCommand, async (sender, args) => await Ocr(),
+                    (sender, args) => args.CanExecute = (Stage == Stage.Recording || Stage == Stage.Paused)),
+
                 new CommandBinding(_viewModel.PauseCommand, (sender, args) => Pause(),
                     (sender, args) => args.CanExecute = Stage == Stage.Recording && UserSettings.All.CaptureFrequency != CaptureFrequency.Manual),
 
@@ -906,6 +917,45 @@ namespace ScreenToGif.Windows
             //When event is fired when the frequency is picked from the context menu, just switch the labels.
             DetectCaptureFrequency();
             AutoFitButtons();
+        }
+
+        internal async Task Ocr()
+        {
+            var pathToLatestFrame = Path.Combine(Project.FullPath, $"{FrameCount}.png");
+
+            var text = await Task.Run(() =>
+            {
+                try
+                {
+                    using (var engine = new TesseractEngine(@"./Ocr", "eng", EngineMode.Default))
+                    {
+                        using (var img = Pix.LoadFromFile(pathToLatestFrame))
+                        {
+                            // N.b this version of tesseract requires that the background
+                            // be light and the text dark. Otherwise the results will be meaningless.
+                            // We could probably invert the image if needed but atm
+                            // im likely to just be OCRing stuff in light themed apps.
+                            // Trained data is from https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/master/eng.traineddata
+                            img.ConvertRGBToGray(); // this line might just help if the text is coloured.
+
+                            using (var page = engine.Process(img))
+                            {
+                                return page.GetText();
+                            }
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    LogWriter.Log(e, "Failed to perform OCR.");
+                    return null;
+                }
+            });
+
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                MessageBox.Show(text);
+            }
         }
 
         /// <summary>
@@ -1029,27 +1079,27 @@ namespace ScreenToGif.Windows
                     #endregion
 
                     #endregion
-                    
+
                     case Stage.Paused:
 
                         #region To record again
 
                         Stage = Stage.Recording;
                         Title = "ScreenToGif";
-                        
+
                         SetTaskbarButtonOverlay();
                         HideGuidelines();
                         AutoFitButtons();
-                        
+
                         //If it's interaction mode, the capture is done via Snap().
                         if (UserSettings.All.CaptureFrequency == CaptureFrequency.Interaction)
                             return;
 
                         FrequencyIntegerUpDown.IsEnabled = false;
-                        
+
                         DisplayTimer.Start();
                         FrameRate.Start(HasFixedDelay(), GetFixedDelay());
-                        
+
                         _captureTimer.Interval = GetCaptureInterval();
                         _captureTimer.Start();
                         break;
@@ -1168,7 +1218,7 @@ namespace ScreenToGif.Windows
                 _captureTimer.Stop();
                 DisplayTimer.Stop();
                 FrameRate.Stop();
-                
+
                 if (_capture != null)
                     await _capture.Stop();
 
@@ -1324,7 +1374,7 @@ namespace ScreenToGif.Windows
                     return;
 
                 _viewModel.ButtonStyle = (Style)FindResource("Style.Button.NoText");
-                
+
                 MinimizeVisibility = Visibility.Collapsed;
 
                 if (IsThin)
@@ -1336,7 +1386,7 @@ namespace ScreenToGif.Windows
                     return;
 
                 _viewModel.ButtonStyle = (Style)FindResource("Style.Button.Horizontal");
-                
+
                 MinimizeVisibility = Visibility.Visible;
 
                 if (IsThin)
@@ -1457,7 +1507,7 @@ namespace ScreenToGif.Windows
                     left = 0;
                 }
 
-                //The catch here is to get the closest monitor from current Top/Left point. 
+                //The catch here is to get the closest monitor from current Top/Left point.
                 var monitors = Monitor.AllMonitorsGranular();
                 var closest = monitors.FirstOrDefault(x => x.Bounds.Contains(new Point((int)left, (int)top))) ?? monitors.FirstOrDefault(x => x.IsPrimary) ?? monitors.FirstOrDefault();
 
@@ -1536,7 +1586,7 @@ namespace ScreenToGif.Windows
             _viewModel.Monitors = Monitor.AllMonitorsGranular();
 
             //Detect closest screen to the point (previously selected top/left point or current mouse coordinate).
-            var point = startup ? (double.IsNaN(UserSettings.All.RecorderTop) || double.IsNaN(UserSettings.All.RecorderLeft) ? 
+            var point = startup ? (double.IsNaN(UserSettings.All.RecorderTop) || double.IsNaN(UserSettings.All.RecorderLeft) ?
                 Util.Native.GetMousePosition(_scale, Left, Top) : new Point((int)UserSettings.All.RecorderLeft, (int)UserSettings.All.RecorderTop)) : new Point((int) Left, (int) Top);
             var closest = _viewModel.Monitors.FirstOrDefault(x => x.Bounds.Contains(point)) ?? _viewModel.Monitors.FirstOrDefault(x => x.IsPrimary) ?? _viewModel.Monitors.FirstOrDefault();
 
@@ -1643,7 +1693,7 @@ namespace ScreenToGif.Windows
             {
                 Dispatcher?.Invoke(() =>
                 {
-                    //Pause the recording and show the error.  
+                    //Pause the recording and show the error.
                     Pause();
 
                     ErrorDialog.Ok("ScreenToGif", LocalizationHelper.Get("S.Recorder.Warning.CaptureNotPossible"), exception.Message, exception);

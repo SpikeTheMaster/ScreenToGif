@@ -60,6 +60,11 @@ namespace ScreenToGif.ViewModel
             Text = "S.Command.Record"
         };
 
+        public RoutedUICommand OcrCommand { get; set; } = new RoutedUICommand
+        {
+            Text = "S.Command.Ocr"
+        };
+
         public RoutedUICommand SnapCommand { get; set; } = new RoutedUICommand
         {
             Text = "S.Command.Snap"

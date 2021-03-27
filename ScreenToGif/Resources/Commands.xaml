@@ -140,7 +140,7 @@
             <KeyGesture>End</KeyGesture>
         </RoutedUICommand.InputGestures>
     </RoutedUICommand>
-    
+
     <!--Edit-->
     <RoutedUICommand x:Key="Command.Undo" Text="S.Command.Undo">
         <RoutedUICommand.InputGestures>
@@ -153,7 +153,7 @@
             <KeyGesture>Ctrl + Y</KeyGesture>
         </RoutedUICommand.InputGestures>
     </RoutedUICommand>
-    
+
     <RoutedUICommand x:Key="Command.Reset" Text="S.Command.Reset">
         <RoutedUICommand.InputGestures>
             <KeyGesture>Ctrl + R</KeyGesture>
@@ -177,7 +177,7 @@
             <KeyGesture>Ctrl + V</KeyGesture>
         </RoutedUICommand.InputGestures>
     </RoutedUICommand>
-    
+
     <RoutedUICommand x:Key="Command.ExploreClipboard" Text="S.Command.ExploreClipboard"/>
 
     <RoutedUICommand x:Key="Command.RemoveClipboardEntry" Text="S.Command.RemoveClipboardEntry"/>
@@ -187,7 +187,7 @@
             <KeyGesture>Delete</KeyGesture>
         </RoutedUICommand.InputGestures>
     </RoutedUICommand>
-    
+
     <RoutedUICommand x:Key="Command.DeletePrevious" Text="S.Command.DeletePrevious">
         <RoutedUICommand.InputGestures>
             <KeyGesture>Alt + Left</KeyGesture>
@@ -285,6 +285,12 @@
         </RoutedUICommand.InputGestures>
     </RoutedUICommand>
 
+    <RoutedUICommand x:Key="Command.Ocr" Text="S.Command.Ocr">
+        <RoutedUICommand.InputGestures>
+            <KeyGesture>Alt + O</KeyGesture>
+        </RoutedUICommand.InputGestures>
+    </RoutedUICommand>
+
     <RoutedUICommand x:Key="Command.Shapes" Text="S.Command.Shapes">
         <RoutedUICommand.InputGestures>
             <KeyGesture>Alt + J</KeyGesture>
@@ -332,7 +338,7 @@
             <KeyGesture>Alt + K</KeyGesture>
         </RoutedUICommand.InputGestures>
     </RoutedUICommand>
-    
+
     <!--Selection-->
     <RoutedUICommand x:Key="Command.SelectAll" Text="S.Command.SelectAll">
         <RoutedUICommand.InputGestures>
@@ -370,7 +376,7 @@
             <KeyGesture>Ctrl + Shift + Y</KeyGesture>
         </RoutedUICommand.InputGestures>
     </RoutedUICommand>
-    
+
     <!--Other-->
     <RoutedUICommand x:Key="Command.Options" Text="S.Command.Options">
         <RoutedUICommand.InputGestures>
@@ -392,7 +398,7 @@
     <RoutedUICommand x:Key="Command.BrowseFfmpeg"/>
     <RoutedUICommand x:Key="Command.BrowseGifski"/>
     <RoutedUICommand x:Key="Command.BrowseSharpDx"/>
-    
+
     <RoutedUICommand x:Key="Command.CreateLocalSettings" Text="S.Command.CreateLocalSettings">
         <RoutedUICommand.InputGestures>
             <KeyGesture>Ctrl + Alt + C</KeyGesture>
@@ -490,7 +496,7 @@
             <KeyGesture>Ctrl + E</KeyGesture>
         </RoutedUICommand.InputGestures>
     </RoutedUICommand>
-    
+
     <RoutedUICommand x:Key="Command.Save" Text="S.Command.Save">
         <RoutedUICommand.InputGestures>
             <KeyGesture>Ctrl + S</KeyGesture>
